@@ -3,7 +3,7 @@
 namespace Leantime\Domain\Users\Services {
 
     use Illuminate\Contracts\Container\BindingResolutionException;
-    use Leantime\Core\Events\DispatchesEvents;
+    use Leantime\Core\Eventhelpers;
     use Leantime\Core\Language as LanguageCore;
     use Leantime\Core\Mailer as MailerCore;
     use Leantime\Domain\Auth\Models\Roles;
@@ -20,7 +20,7 @@ namespace Leantime\Domain\Users\Services {
      */
     class Users
     {
-        use DispatchesEvents;
+        use Eventhelpers;
 
         private UserRepository $userRepo;
         private LanguageCore $language;
@@ -162,11 +162,11 @@ namespace Leantime\Domain\Users\Services {
             $filteredInput = htmlspecialchars($setting);
             $filteredValue = htmlspecialchars($value);
 
-            session(["usersettings.".$category.".".$filteredInput => $filteredValue]);
+            $_SESSION['userdata']['settings'][$category][$filteredInput] =  $filteredValue;
 
-            $serializeSettings = serialize(session("usersettings"));
+            $serializeSettings = serialize($_SESSION['userdata']['settings']);
 
-            return $this->userRepo->patchUser(session("userdata.id"), array("settings" => $serializeSettings));
+            return $this->userRepo->patchUser($_SESSION['userdata']['id'], array("settings" => $serializeSettings));
         }
 
         /**
@@ -244,7 +244,7 @@ namespace Leantime\Domain\Users\Services {
 
             $message = sprintf(
                 $this->language->__("email_notifications.user_invite_message"),
-                session("userdata.name") ?? "Leantime",
+                $_SESSION["userdata"]["name"] ?? "Leantime",
                 $actual_link,
                 $user
             );
@@ -253,7 +253,7 @@ namespace Leantime\Domain\Users\Services {
 
             $to = array($user);
 
-            $mailer->sendMail($to, session("userdata.name") ?? "Leantime");
+            $mailer->sendMail($to, $_SESSION["userdata"]["name"] ?? "Leantime");
         }
 
 
